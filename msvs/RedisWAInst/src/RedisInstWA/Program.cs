@@ -59,6 +59,7 @@ namespace RedisInstWA
         /// Prepare and initiate install of Redis to Azure
         /// </summary>
         /// <param name="args"></param>
+        [STAThread]
         static void Main(string[] args)
         {
 
