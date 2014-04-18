@@ -83,9 +83,9 @@ namespace RedisInstWA
         private const string instXmlSDK =
 @"    <!-- assemblies and SDKs -->
     <Parameter Name=""AzureDeploymentCmdletsAssemblyPath""
-               Value=""%%Program Files%%\Microsoft SDKs\Windows Azure\PowerShell\Azure\Microsoft.WindowsAzure.Management.CloudService.dll"" Required=""yes""></Parameter>
+               Value=""%%Program Files%%\Microsoft SDKs\Windows Azure\PowerShell\Azure\Microsoft.WindowsAzure.ManagementLibraries.Private.dll"" Required=""yes""></Parameter>
     <Parameter Name=""AzureMgmtCmdletsAssemblyPath""
-           Value=""%%Program Files%%\Microsoft SDKs\Windows Azure\PowerShell\Azure\Microsoft.WindowsAzure.Management.dll"" Required=""yes""></Parameter>
+               Value=""%%Program Files%%\Microsoft SDKs\Windows Azure\PowerShell\Azure\Microsoft.WindowsAzure.ManagementLibraries.Private.dll"" Required=""yes""></Parameter>
     <Parameter Name=""RedisDeployCmdletsAssemblyPath""
                ValuePrefixRef=""BinDir"" ValueSuffix=""\RedisDeployCmdlets.dll"" Required=""yes""></Parameter>
     <Parameter Name=""AzureNodeJsSdkPath"" Value=""%%Program Files%%\Microsoft SDKs\Windows Azure\PowerShell\Azure""></Parameter>
@@ -129,12 +129,16 @@ namespace RedisInstWA
     <Parameter Name=""MasterHost"" Value=""{1}""></Parameter>
 ";
 
-        // common steps to add assemblies and create folder
-        private const string instXmlStepPrep =
+        //installation of azure nodejs sdk
+        private const string instXmlInstPrep =
 @"    <Step Type=""Cmdlet"" Command=""Install-AzureSdkForNodeJs"" Message=""Installing Windows Azure PowerShell for Node.JS"">
       <CommandParam Name=""AzureNodeSdkLoc"" ParameterName=""AzureNodeJsSdkPath"" />
     </Step>
-    <!--Load Azure SDK Dll's-->
+";
+
+        // common steps to add assemblies and create folder
+        private const string instXmlStepPrep =
+@"  <!--Load Azure SDK Dll's-->
     <Step Type=""Cmdlet"" Command=""Add-LoadAssembly"" Message=""Loading Windows Azure PowerShell for Node.JS"">
       <CommandParam Name=""CmdletsAssemblyPath"" ParameterName=""AzureDeploymentCmdletsAssemblyPath"" />
     </Step>
@@ -227,12 +231,14 @@ namespace RedisInstWA
       <CommandParam Name=""Location"" ParameterName=""Region"" />
       <CommandParam Name=""Subscription"" ParameterName=""Subscription"" />
     </Step>
+    <Step Type=""Cmdlet"" Command=""Select-AzureSubscription"" Message=""Select Azure Subcription"">
+      <CommandParam Name=""SubscriptionName"" ParameterName=""Subscription"" />
+    </Step>
     <Step Type=""Cmdlet"" Command=""Publish-AzureServiceProject -launch"" Message=""Deploying the app to Azure"">
       <CommandParam Name=""ServiceName"" ParameterName=""DeploymentName"" />
       <CommandParam Name=""StorageAccountName"" ParameterName=""StorageAccountName"" />
       <CommandParam Name=""Slot"" ParameterName=""DeploymentOption"" />
       <CommandParam Name=""Location"" ParameterName=""Region"" />
-      <CommandParam Name=""Subscription"" ParameterName=""Subscription"" />
     </Step>
     <Step Type=""Cmdlet"" Command=""Ping-ServiceEndpoints"" Message=""Verifying the Endpoints."">
       <CommandParam Name=""PublishSettingsFile"" ParameterName=""PublishSettingsFilePath"" />
@@ -293,6 +299,17 @@ namespace RedisInstWA
             sbParams.AppendFormat(instXmlMasterRole, masterInst.MasterPort, isEmul ? "localhost" : domain);
 
             StringBuilder sbSteps = new StringBuilder();
+
+            //check if azure sdk for node is already installed if not then add the installation script in the xml
+
+            string regKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(regKey))
+            {
+                if (!key.GetSubKeyNames().Any(keyName => key.OpenSubKey(keyName).GetValue("DisplayName") != null 
+                    && key.OpenSubKey(keyName).GetValue("DisplayName").ToString().StartsWith("Windows Azure PowerShell")))
+                    sbSteps.Append(instXmlInstPrep);
+            }                
+
             sbSteps.Append(instXmlStepPrep);
             if (!isEmul)
             {
