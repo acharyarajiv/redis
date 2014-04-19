@@ -15,7 +15,7 @@ RedisInstWA -Source &lt;path to redis exe or URL to ZIP&gt; -Config &lt;path to 
 If deploying to the Azure emulator, then use -Emu in place of -Domain and -Subscription.
 Note that the Source may be to local Redis exe files, or may reference a GitHub zip file. If using a zip file, the 32 bit binaries are used by default. To use the 64 bit binaries include the optional -X64 parameter.  
  
-For example: -Source https://github.com/MSOpenTech/redis/archive/2.4.zip will download the zip file for the latest code for branch 2.4.
+For example: -Source https://github.com/MSOpenTech/redis/archive/2.8.4_msopen.zip will download the zip file for the latest code for branch 2.8.4_msopen
 
 The --Pass (note the double '-') parameter is optional. Any parameters following this are passed on to Inst4WA. This is useful to override settings such as region or slot. See the Pass-through parameters section.
 
@@ -28,7 +28,7 @@ After downloading files, you may have to unblock the DLLs to enable them to be u
 * DeploymentName - default DomainName + 'deploy'
 * Region - default 'West US'
 * DeploymentOption - default 'Production'
-* PublishSettingsFilePath - default is any file in –Config folder with publishsettings extension.
+* PublishSettingsFilePath - default is any file in ï¿½Config folder with publishsettings extension.
 
 Configuring the deployment
 --------------------------
@@ -46,7 +46,7 @@ To enable RDP to the Azure roles, you need to define the certificates that you w
 For example:   
 
 >     <Role name="RedisMaster">  
->       …  
+>       ï¿½  
 >       <Certificates>   
 >        <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption"   
 >                     thumbprint="2CF79A6E4B88031BB3C70B3A6A26D86F2F687111"   
